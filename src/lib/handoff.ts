@@ -53,18 +53,21 @@ const TERMINAL_CONFIGS: Record<TerminalApp, TerminalConfig> = {
   ghostty: {
     name: "Ghostty",
     openCommand: (dir, cmd) => {
-      const fullCmd = escapeForAppleScript(`cd "${dir}" && ${cmd}`)
-      return `osascript -e '
-        tell application "Ghostty"
-          activate
+      const fullCmd = `cd "${dir}" && ${cmd}`
+      return `bash -c 'echo "${fullCmd.replace(/"/g, '\\"')}" | pbcopy && osascript -e "
+        tell application \\"Ghostty\\" to activate
+        delay 0.3
+        repeat until application \\"Ghostty\\" is frontmost
           delay 0.1
-          tell application "System Events"
-            keystroke "t" using command down
-            delay 0.3
-            keystroke "${fullCmd}"
-            key code 36
-          end tell
-        end tell'`
+        end repeat
+        tell application \\"System Events\\"
+          keystroke \\"t\\" using command down
+          delay 0.3
+          keystroke \\"v\\" using command down
+          delay 0.1
+          key code 36
+        end tell
+      "'`
     },
   },
   iterm: {
@@ -87,18 +90,21 @@ const TERMINAL_CONFIGS: Record<TerminalApp, TerminalConfig> = {
   warp: {
     name: "Warp",
     openCommand: (dir, cmd) => {
-      const fullCmd = escapeForAppleScript(`cd "${dir}" && ${cmd}`)
-      return `osascript -e '
-        tell application "Warp"
-          activate
+      const fullCmd = `cd "${dir}" && ${cmd}`
+      return `bash -c 'echo "${fullCmd.replace(/"/g, '\\"')}" | pbcopy && osascript -e "
+        tell application \\"Warp\\" to activate
+        delay 0.3
+        repeat until application \\"Warp\\" is frontmost
           delay 0.1
-          tell application "System Events"
-            keystroke "t" using command down
-            delay 0.3
-            keystroke "${fullCmd}"
-            key code 36
-          end tell
-        end tell'`
+        end repeat
+        tell application \\"System Events\\"
+          keystroke \\"t\\" using command down
+          delay 0.3
+          keystroke \\"v\\" using command down
+          delay 0.1
+          key code 36
+        end tell
+      "'`
     },
   },
   alacritty: {
@@ -116,18 +122,21 @@ const TERMINAL_CONFIGS: Record<TerminalApp, TerminalConfig> = {
   hyper: {
     name: "Hyper",
     openCommand: (dir, cmd) => {
-      const fullCmd = escapeForAppleScript(`cd "${dir}" && ${cmd}`)
-      return `osascript -e '
-        tell application "Hyper"
-          activate
+      const fullCmd = `cd "${dir}" && ${cmd}`
+      return `bash -c 'echo "${fullCmd.replace(/"/g, '\\"')}" | pbcopy && osascript -e "
+        tell application \\"Hyper\\" to activate
+        delay 0.3
+        repeat until application \\"Hyper\\" is frontmost
           delay 0.1
-          tell application "System Events"
-            keystroke "t" using command down
-            delay 0.3
-            keystroke "${fullCmd}"
-            key code 36
-          end tell
-        end tell'`
+        end repeat
+        tell application \\"System Events\\"
+          keystroke \\"t\\" using command down
+          delay 0.3
+          keystroke \\"v\\" using command down
+          delay 0.1
+          key code 36
+        end tell
+      "'`
     },
   },
 }
