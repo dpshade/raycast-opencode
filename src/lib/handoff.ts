@@ -11,10 +11,6 @@ interface TerminalConfig {
   openCommand: (dir: string, cmd: string) => string
 }
 
-function escapeForShell(str: string): string {
-  return str.replace(/'/g, "'\\''")
-}
-
 function escapeForAppleScript(str: string): string {
   return str.replace(/\\/g, "\\\\").replace(/"/g, '\\"')
 }
@@ -23,36 +19,86 @@ const TERMINAL_CONFIGS: Record<TerminalApp, TerminalConfig> = {
   default: {
     name: "Default Terminal",
     openCommand: (dir, cmd) => {
-      const escaped = escapeForAppleScript(`cd "${dir}" && ${cmd}`)
-      return `osascript -e 'tell application "Terminal" to activate' -e 'tell application "Terminal" to do script "${escaped}"'`
+      const fullCmd = escapeForAppleScript(`cd "${dir}" && ${cmd}`)
+      return `osascript -e '
+        tell application "Terminal"
+          activate
+          if (count of windows) > 0 then
+            tell application "System Events" to keystroke "t" using command down
+            delay 0.3
+            do script "${fullCmd}" in front window
+          else
+            do script "${fullCmd}"
+          end if
+        end tell'`
     },
   },
   terminal: {
     name: "Terminal.app",
     openCommand: (dir, cmd) => {
-      const escaped = escapeForAppleScript(`cd "${dir}" && ${cmd}`)
-      return `osascript -e 'tell application "Terminal" to activate' -e 'tell application "Terminal" to do script "${escaped}"'`
+      const fullCmd = escapeForAppleScript(`cd "${dir}" && ${cmd}`)
+      return `osascript -e '
+        tell application "Terminal"
+          activate
+          if (count of windows) > 0 then
+            tell application "System Events" to keystroke "t" using command down
+            delay 0.3
+            do script "${fullCmd}" in front window
+          else
+            do script "${fullCmd}"
+          end if
+        end tell'`
     },
   },
   ghostty: {
     name: "Ghostty",
     openCommand: (dir, cmd) => {
-      const escaped = escapeForShell(`cd '${escapeForShell(dir)}' && ${cmd}; exec $SHELL`)
-      return `open -a Ghostty --args -e sh -c '${escaped}'`
+      const fullCmd = escapeForAppleScript(`cd "${dir}" && ${cmd}`)
+      return `osascript -e '
+        tell application "Ghostty"
+          activate
+          delay 0.1
+          tell application "System Events"
+            keystroke "t" using command down
+            delay 0.3
+            keystroke "${fullCmd}"
+            key code 36
+          end tell
+        end tell'`
     },
   },
   iterm: {
     name: "iTerm",
     openCommand: (dir, cmd) => {
-      const escaped = escapeForAppleScript(`cd "${dir}" && ${cmd}`)
-      return `osascript -e 'tell application "iTerm" to create window with default profile' -e 'tell application "iTerm" to tell current session of current window to write text "${escaped}"'`
+      const fullCmd = escapeForAppleScript(`cd "${dir}" && ${cmd}`)
+      return `osascript -e '
+        tell application "iTerm"
+          activate
+          if (count of windows) = 0 then
+            create window with default profile command "${fullCmd}"
+          else
+            tell current window
+              create tab with default profile command "${fullCmd}"
+            end tell
+          end if
+        end tell'`
     },
   },
   warp: {
     name: "Warp",
     openCommand: (dir, cmd) => {
-      const escaped = escapeForAppleScript(`cd "${dir}" && ${cmd}`)
-      return `open -a Warp "${dir}" && sleep 0.3 && osascript -e 'tell application "System Events" to tell process "Warp" to keystroke "${escaped}"' -e 'tell application "System Events" to tell process "Warp" to key code 36'`
+      const fullCmd = escapeForAppleScript(`cd "${dir}" && ${cmd}`)
+      return `osascript -e '
+        tell application "Warp"
+          activate
+          delay 0.1
+          tell application "System Events"
+            keystroke "t" using command down
+            delay 0.3
+            keystroke "${fullCmd}"
+            key code 36
+          end tell
+        end tell'`
     },
   },
   alacritty: {
@@ -62,14 +108,26 @@ const TERMINAL_CONFIGS: Record<TerminalApp, TerminalConfig> = {
   },
   kitty: {
     name: "Kitty",
-    openCommand: (dir, cmd) =>
-      `kitty --directory "${dir}" bash -c '${cmd}; exec bash'`,
+    openCommand: (dir, cmd) => {
+      const fullCmd = cmd.replace(/'/g, "'\\''")
+      return `kitty @ launch --type=tab --cwd="${dir}" bash -c '${fullCmd}; exec bash' 2>/dev/null || kitty --single-instance --directory "${dir}" bash -c '${fullCmd}; exec bash'`
+    },
   },
   hyper: {
     name: "Hyper",
     openCommand: (dir, cmd) => {
-      const escaped = escapeForAppleScript(`cd "${dir}" && ${cmd}`)
-      return `open -a Hyper && sleep 0.3 && osascript -e 'tell application "System Events" to tell process "Hyper" to keystroke "${escaped}"' -e 'tell application "System Events" to tell process "Hyper" to key code 36'`
+      const fullCmd = escapeForAppleScript(`cd "${dir}" && ${cmd}`)
+      return `osascript -e '
+        tell application "Hyper"
+          activate
+          delay 0.1
+          tell application "System Events"
+            keystroke "t" using command down
+            delay 0.3
+            keystroke "${fullCmd}"
+            key code 36
+          end tell
+        end tell'`
     },
   },
 }
